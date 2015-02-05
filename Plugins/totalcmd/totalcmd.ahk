@@ -12,7 +12,7 @@ TOTALCMD:
 	GoSub,TCCOMMAND
 	vim.SetMode("normal")
 	vim.Map("<w-e>","<TC_Toggle>")
-	vim.SetWin("TC","TTOTAL_CMD","TOTALCMD.exe")
+	vim.SetWin("TC","TTOTAL_CMD",TCExe)
 	vim.SetTimeOut(800,"TC")
 	vim.BeforeActionDo("TC_BeforeActionDo","TC")
 	vim.AfterActionDo("TC_AfterActionDo","TC")
@@ -397,8 +397,9 @@ FindTCDir()
 }
 GetTCCtrl()
 {
+  Global TCExe
 	ctrl := []
-	If A_Is64bitOS
+	If RegExMatch(TCExe,"i)64\.exe")
 	{
 		ctrl["TCListBox"] := "LCLListBox"
 		ctrl["TCEdit"]    := "Edit2"

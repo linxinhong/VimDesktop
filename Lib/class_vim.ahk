@@ -449,6 +449,8 @@ Class __vim
 						winObj.Count := winObj.MaxCount	
 			    winObj.KeyTemp := ""
 				  winObj.ShowMore()
+				  If IsFunc(f:=winObj.AfterActionDoFunc)
+					  %f%()
           return
 				}
 				Else {
