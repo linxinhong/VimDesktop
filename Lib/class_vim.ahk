@@ -146,6 +146,21 @@ Class __vim
 			Else
 				return this.winGlobal
 		}
+    	; CheckWin() {{{2
+		CheckWin()
+		{
+/*
+			WinGetTitle,t,A
+			If Strlen(winName:=this.winInfo["title`t"t])
+				return winName
+*/
+			WinGet,f,ProcessName,A
+			If Strlen(winName:=this.winInfo["filepath`t"f])
+				return winName
+			WinGetClass,c,A
+			If Strlen(winName:=this.winInfo["class`t"c])
+				return winName
+		}
 		
 		; SetMode(modeName,winName) {{{2
 		SetMode(modeName,winName="")
@@ -223,8 +238,14 @@ Class __vim
 			winObj := This.GetWin(winName)
 			modeObj := this.GetMode(winName)
 			Class:=winObj.class
+      filepath := winObj.filepath
 			If winName
-				Hotkey,IfWinActive,ahk_class %class%
+      {
+        If strlen(filepath)
+          Hotkey,IfWinActive,ahk_exe %filepath%
+        Else
+				  Hotkey,IfWinActive,ahk_class %class%
+      }
 			Else
 				Hotkey,IfWinActive
 			keyName := RegExReplace(keyName,"i)<nowait>","",nowait)
@@ -286,7 +307,10 @@ Class __vim
 		{
 			winObj := this.GetWin(winName)
 			class := winObj.Class
-			If Strlen(class)
+      filepath := winObj.filepath
+      If Strlen(filepath)
+        Hotkey,IfWinActive,ahk_exe %filepath%
+			Else If Strlen(class)
 				Hotkey,IfWinActive,ahk_class %class%
 			Else
 				Hotkey,IfWinActive
@@ -335,35 +359,27 @@ Class __vim
 			this.Control(False,winName,all:=True)
 			this.winList[winName] := ""
 		}
-		; CheckWin() {{{2
-		CheckWin()
-		{
-/*
-			WinGetTitle,t,A
-			If Strlen(winName:=this.winInfo["title`t"t])
-				return winName
-			WinGet,f,ProcessName,A
-			If Strlen(winName:=this.winInfo["filepath`t"f])
-				return winName
-*/
-			WinGetClass,c,A
-			If Strlen(winName:=this.winInfo["class`t"c])
-				return winName
-		}
+	
 		
 		; GetMore() {{{2
 		GetMore()
 		{
 			winObj  := this.GetWin(this.LastFoundWin)
 			modeObj := this.GetMode(this.LastFoundWin)
-			r := winObj.KeyTemp "`n"
-			m := "i)^" this.ToMatch(winObj.KeyTemp) ".+"
-			for i ,k in modeObj.keymapList
-			{
-				If RegExMatch(i,m)
-					r .= i "`t" modeObj.GetKeyMap(i) "`n" 
-			}
-			return r
+      If winObj.KeyTemp
+      {
+			  r := winObj.KeyTemp "`n"
+			  m := "i)^" this.ToMatch(winObj.KeyTemp) ".+"
+			  for i ,k in modeObj.keymapList
+			  {
+				  If RegExMatch(i,m)
+					  r .= i "`t" modeObj.GetKeyMap(i) "`n" 
+			  }
+			  return r
+      }
+      Else
+        If winobj.count
+        return winobj.count
 		}
 		; Clear() {{{2
 		Clear(winName="") {
@@ -431,6 +447,9 @@ Class __vim
 					winObj.Count := winObj.Count * 10 + m1
 					If winObj.MaxCount And winObj.Count > winObj.MaxCount
 						winObj.Count := winObj.MaxCount	
+			    winObj.KeyTemp := ""
+				  winObj.ShowMore()
+          return
 				}
 				Else {
 					; 非数字则直接运行
