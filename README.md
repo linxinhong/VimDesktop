@@ -17,4 +17,14 @@ Search 模式下 :
 # VimDesktop已经做了哪些？
 
 VimDesktop支持插件化，现在初步支持
-+ __TotalCommander__
++ __TotalCommander__ 由[ViATc](http://xbeta.info/viatc.htm)进阶而来，将TC vim化，方便管理文件
++ __Everything__ 支持[Everything](http://xbeta.info/everything-search-tool.htm)上的vim化
++ 更多插件……
+
+# VimDesktop要做些什么？
++ 完善帮助文档，让更多人可以编写自己的插件。vim your desktop
++ 增加更多的插件
+
+# 其它
++ 如果有问题可以发送邮件给我[StarRed](mailto:234653915@qq.com)
++ 或者加入群一起讨论 271105729
