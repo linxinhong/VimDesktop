@@ -1,5 +1,11 @@
-﻿; 初始化
+﻿; 文件名: example.ahk
+; 功能： 提供class_vim.ahk的应用说明，可以直接运行,独立于VimDesktop，以记事本为例子。
+; 作者: Array(linxinhong)
+; 时间： 2015年2月5日
 
+
+
+; 初始化class_vim
 vim := class_vim()
 
 ; 运行Notepad作为示例
@@ -28,6 +34,8 @@ act.setCmdLine("cmd.exe")
 
 ; 设置Action为发送文本" this is vimd"
 act.setHotString("this is vimd")
+
+Action执行的功能只能是Label/function/cmdline/hotstring.其中的一种，建议使用Lable或者function。方便修改
 */
 }
 

@@ -9,21 +9,19 @@
 	vim.SetAction("<pagedown>","向上翻页")
 	vim.SetAction("<Gen_InsertMode>","插入模式")
 	vim.SetAction("<Gen_NormalMode>","浏览模式")
-	vim.SetAction("<Gen_Toggle>","启用/禁用热键")
-	vim.SetAction("<Gen_CopyWin>","复制General热键到当前窗口")
+	vim.SetAction("<Gen_Toggle>","启用/禁用vim热键(General插件)")
 	vim.SetAction("<Reload>","重新加载")
 	vim.SetAction("<Exit>","重新加载")
 	vim.SetAction("<msgbox>","test")
-
 	vim.SetMode("normal")
 	;vim.map("<w-z>","<reload>")
-	vim.map("<c-esc>","<Gen_copywin>")
+	vim.map("<c-esc>","<Gen_Toggle>")
 	;vim.map("<w-tab>dddd","<msgbox>")
 
-
-	vim.SetWin("General","")
-
-
+	vim.SetWin("General","General")
+	vim.SetMode("insert","General")
+	vim.map("<Esc>","<Gen_NormalMode>","General")
+	vim.SetMode("normal","General")
 	vim.Map("j","<down>","General")
 	vim.Map("k","<up>","General")
 	vim.Map("h","<right>","General")
@@ -40,13 +38,26 @@ return
 	vim.SetMode("Normal",vim.CheckWin())
 return
 <Gen_Toggle>:
-	vim.Toggle(vim.CheckWin())
+  Gen_Toggle()
 return
-<Gen_copywin>:
-	WinGetClass,C,A
-	vim.copy("General",c,c)
-return
-
+Gen_Toggle()
+{
+  Global vim
+	WinGetClass,c,A
+  If IsObject(vim.GetWin(WinName:=vim.CheckWin()))
+  {
+    MsgBox, ,VimDesktop, 当前窗口 [ %winName% ] 已经拥有Vim模式`n不允许替换为通用(General)模式！
+    return
+  }
+  winObj := vim.GetWin(c)
+  If not Isobject(winObj)
+  {
+	  WinGetClass,C,A
+	  new :=vim.copy("General",c,c)
+  }
+  Else
+	  vim.Toggle(c)
+}
 <msgbox>:
 	msgbox 是否是这个效果？
 return

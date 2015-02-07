@@ -108,6 +108,15 @@ Class __vim
 		{
 			return this.pluginList[PluginName]
 		}
+    ; Comment(action,desc,complex=1) {{{2
+    ; 兼容老版本的vimcore.ahk
+    Comment(action,desc,complex=1)
+    {
+      act := this.SetAction(Action,Desc)
+      If not complex ; 不允许多次运行
+	      act.SetMaxTimes(1)
+      return act
+    }
 		; SetAction(Name,Comment) {{{2
 		; 用于为Action(动作)进行注释
 		SetAction(Name,Comment="")
@@ -161,7 +170,14 @@ Class __vim
 			If Strlen(winName:=this.winInfo["class`t"c])
 				return winName
 		}
-		
+		; mode(mode,win="") {{{2
+    ; 兼容老版本的vimcore.ahk
+		mode(mode,win="")
+    {
+      If not IsObject(this.GetWin(win))
+        this.SetWin(win,win)
+      this.SetMode(mode,win)
+    }
 		; SetMode(modeName,winName) {{{2
 		SetMode(modeName,winName="")
 		{
@@ -232,8 +248,13 @@ Class __vim
 		{
 			If not this.GetAction(Action)
 			{
-					msgbox % "map " keyname " to "  action  " error"
-					return
+          If Islabel(action)
+            this.SetAction(Action,Action)
+          Else
+          {
+					  msgbox % "map " keyname " to "  action  " error"
+					  return
+          }
 			}
 			winObj := This.GetWin(winName)
 			modeObj := this.GetMode(winName)
@@ -275,7 +296,7 @@ Class __vim
 					thisKey := "<S-" m ">"
 				SaveKeyName .= thisKey
 				key := this.Convert2AHK(thisKey)
-				this.Debug.Add("Map: " thiskey " to: " key)
+				this.Debug.Add("Map: " thiskey " to: " Action)
 				Hotkey,%Key%,Vim_Key,On,UseErrorLevel
 				If ErrorLevel
 					Msgbox % KeyName "`n" key "`n映射错误"
@@ -329,14 +350,15 @@ Class __vim
 			this.Debug.Add("===== Control Start =====")
 		}
 		; Copy(winName1,winName2) {{{2
+    ; 复制winName1到winName2,winName2按class/filepath/title定义
 		Copy(winName1,winName2,class,filepath="",title="")
 		{
 			this.debug.Add("Copy>> "winName1 "`t"  winName2 "`t" class)
 			w1 := This.GetWin(winName1)
 			w2 := this.SetWin(winName2,class,filepath,title)
-			w2.class := w1.class
-			w2.filepath := w1.filepath
-			w2.title := w1.title
+			w2.class := class
+			w2.filepath := filepath
+			w2.title := title
 			w2.KeyList := w1.KeyList
 			w2.SuperKeyList := w1.SuperKeyList
 			w2.modeList  := w1.modeList
@@ -352,7 +374,21 @@ Class __vim
 			w2.ShowInfoFunc := w1.ShowInfoFunc
 			w2.HideInfoFunc := w1.HideInfoFunc
 			this.Control(Bold:=True,winName2,all:=true)
+      return w2
 		}
+
+    ; CopyMode(win,mode,to) {{{2
+    ; 在当前的Win中复制一个模式
+    CopyMode(winName,fromMode,toMode)
+    {
+			winObj := This.GetWin(winName)
+		  winObj.mode := modeName
+		  winObj.KeyTemp := ""
+		  winObj.Count := 0
+			from:=winObj.modeList[fromMode] 
+      from.name  := toMode
+      winObj.modeList[toMode] := from
+    }
 	
 		; Delete(winName) {{{2
 		Delete(winName="") {
@@ -395,7 +431,7 @@ Class __vim
 			winName := this.CheckWin()
 			; 获取当前的热键
 			k := this.CheckCapsLock(this.Convert2VIM(A_ThisHotkey))
-			this.Debug.Add(" win: " winName "`tkeyName:" k )
+			this.Debug.Add(" win: " winname "`tHotkey: " k)
 			; 如果winName在排除窗口中，直接发送热键
 			If this.ExcludeWinList[winName] {
 					Send,% this.Convert2AHK(k,ToSend:=True)
@@ -425,6 +461,12 @@ Class __vim
 			modeObj := this.GetMode(winName)
 			; 把当前热键添加到热键缓存中,并设置最后热键为k
 			winObj.KeyTemp .= winObj.LastKey := k
+/*
+      If winObj.Count
+			  this.Debug.Add(" [" winName "`t热键:" winObj.Count winObj.KeyTemp  )
+      Else
+			  this.Debug.Add(" [" winName "]`t热键:" winObj.KeyTemp  )
+*/
 			; 热键缓存是否有对应的Action?
 			; 判断是否有更多热键,如果当前具有<nowait>设置，则无视更多热键
 			If modeObj.GetMoreKey(winObj.KeyTemp) And (Not modeObj.GetNoWait(winObj.KeyTemp)) {
@@ -505,10 +547,10 @@ Class __vim
 			}
 		}
 		; Debug(Bold) {{{2
-		Debug(Bold)
+		Debug(Bold,history=false)
 		{
 			If Bold
-				this.Debug := new __vimDebug
+				this.Debug := new __vimDebug(history)
 			Else
 				this.Debug := ""
 		}
@@ -891,11 +933,26 @@ Class __Plugin
 ; Class __vimDebug {{{1
 Class __vimDebug
 {
-	__new()
+	__new(key)
 	{
+    this.mode := key
+    If key
+    {
 		GUI,vimDebug:Destroy
-		GUI,vimDebug:Add,Edit,x10 y10 w500 h500 readonly
-		GUI,vimDebug:Show
+		GUI,vimDebug:+hwnd_vimdebug  -Caption +ToolWindow +Border
+		GUI,vimDebug:color,454545,454545
+		GUI,vimDebug:font,s16 cFFFFFF
+		GUI,vimDebug:Add,Edit,x-2 y-2 w400 h60 readonly
+		GUI,vimDebug:Show, w378 h56 y600
+    WinSet,AlwaysOnTop,On,ahk_id %_vimdebug%
+    }
+    Else
+    {
+		  GUI,vimDebug:font,s12
+		  GUI,vimDebug:Destroy
+		  GUI,vimDebug:Add,Edit,x10 y10 w400 h300 readonly
+		  GUI,vimDebug:Show, w420 h320
+    }
 	}
 	Set(v)
 	{
@@ -911,7 +968,10 @@ Class __vimDebug
 	Add(v)
 	{
 		b:=this.Get()
-		this.Set(v "`n" b)
+    If this.mode
+		  this.Set(b)
+    else
+		  this.Set(v "`n" b)
 	}
 	Clear()
 	{
