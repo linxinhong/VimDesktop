@@ -455,6 +455,7 @@ Class __vim
 				}
 				Else {
 					; 非数字则直接运行
+			    ;this.Debug.Add("act: " actionName "`tLK: " winObj.KeyTemp)
 					actObj.Do(winObj.Count)
 					winObj.Count := 0
 				}
@@ -479,6 +480,7 @@ Class __vim
 			If IsFunc(f:=winObj.AfterActionDoFunc){
 				If %f%()
 					Send,% this.Convert2AHK(k,ToSend:=True)
+        ; %f%() ;直接运行
 			}
 			return
 		}
@@ -575,6 +577,7 @@ Class __vim
 		; 例 Convert2AHK("<F1>")
 		Convert2AHK(key,ToSend=False)
 		{
+		  this.CheckCapsLock(key)
 			If RegExMatch(key,"^<.*>$")	
 			{
 				key := SubStr(key,2,strlen(key)-2)
@@ -640,6 +643,7 @@ Class __vim
 				return "<"
 			If RegExMatch(key,"<RT>")
 				return ">"
+      Return Key
 		}
 		; CheckCapsLock(key) {{{2
 		; 检测CapsLock是否按下，返回对应的值
@@ -651,7 +655,10 @@ Class __vim
 				If RegExMatch(key,"^[a-z]$")
 					return "<S-" key ">"
 				If RegExMatch(key,"i)^<S\-([a-zA-Z])>",m)
-					return m1
+        {
+          StringLower, key, m1
+					return key 
+        }
 			}
 			return key
 		}
@@ -887,7 +894,7 @@ Class __vimDebug
 	__new()
 	{
 		GUI,vimDebug:Destroy
-		GUI,vimDebug:Add,Edit,x10 y10 w500 h500
+		GUI,vimDebug:Add,Edit,x10 y10 w500 h500 readonly
 		GUI,vimDebug:Show
 	}
 	Set(v)

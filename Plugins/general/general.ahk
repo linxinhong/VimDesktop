@@ -18,7 +18,7 @@
 	vim.SetMode("normal")
 	;vim.map("<w-z>","<reload>")
 	vim.map("<c-esc>","<Gen_copywin>")
-	vim.map("<w-tab>dddd","<msgbox>")
+	;vim.map("<w-tab>dddd","<msgbox>")
 
 
 	vim.SetWin("General","")
@@ -54,7 +54,7 @@ return
 	reload
 return
 <Exit>:
-	exit
+	ExitApp
 return
 <down>:
 	send,{down}
