@@ -37,7 +37,7 @@ TOTALCMD:
 	vim.map("J","<TC_SelectDown>","TC")
 	vim.map("K","<TC_SelectUp>","TC")
 	vim.map("d","<cm_DirectoryHotlist>","TC")
-	vim.map("D","<cm_OpenDesktop>","TC")
+	vim.map("D","<TC_GotoDesktop>","TC")
 	vim.map("e","<cm_ContextMenu>","TC")
 	vim.map("E","<cm_ExecuteDOS>","TC")
 	vim.map("N","<cm_DirectoryHistory>","TC")
@@ -402,8 +402,8 @@ GetTCCtrl()
 	If RegExMatch(TCExe,"i)64\.exe")
 	{
 		ctrl["TCListBox"] := "LCLListBox"
-		ctrl["TCEdit"]    := "Edit2"
-		ctrl["TInEdit"]   := "TInEdit1"
+		ctrl["TCEdit"]    := "Edit1"
+		ctrl["TInEdit"]   := "Edit1"
 		ctrl["TCPanel1"]  := "Window1"
 		ctrl["TCPanel2"]  := "Window11"
 	}
@@ -753,7 +753,21 @@ GetMenu(hMenu)
 	}
 	Return	sContents
 }
-
+; <TC_GoToDesktop>: {{{2
+<TC_GoToDesktop>:
+  TC_GoToDesktop()
+return
+TC_GoToDesktop()
+{
+; GoSub,<cm_FocusCmdLine>
+	SendMessage 1075, 4003, 0, , AHK_CLASS TTOTAL_CMD
+  ControlGetFocus,cl,ahk_class TTOTAL_CMD
+  ControlGetText,bt,%cl%,AHK_CLASS TTOTAL_CMD
+  ControlSetText, %cl%, cd %A_Desktop%, ahk_class TTOTAL_CMD
+  ControlSend,%cl%, {Enter}, ahk_class TTOTAL_CMD
+  ControlSetText, %cl%, %bt%, ahk_class TTOTAL_CMD
+  ControlSend,%cl%, {end}, ahk_class TTOTAL_CMD
+}
 ; Tool Functions {{{1
 ; LeftRight(){{{2
 LeftRight(){
@@ -1049,6 +1063,7 @@ TCCOMMAND:
   vim.SetAction("<cm_SysInfo>","系统信息")
   vim.SetAction("<cm_OpenTransferManager>","后台传输管理器")
   vim.SetAction("<cm_SearchFor>","搜索文件")
+  vim.SetAction("<cm_SearchStandalone>","搜索文件(单独进程)")
   vim.SetAction("<cm_FileSync>","同步文件夹")
   vim.SetAction("<cm_Associate>","文件关联")
   vim.SetAction("<cm_InternalAssociate>","定义内部关联")
@@ -2341,6 +2356,10 @@ Return
 <cm_SearchFor>:
 	SendPos(501)
 Return
+; <cm_SearchStandalone>: >> 搜索文件(单独进程) {{{2
+<cm_SearchStandalone>:
+	SendPos(545)
+return
 ;<cm_FileSync>: >>同步文件夹{{{2
 <cm_FileSync>:
 	SendPos(2020)

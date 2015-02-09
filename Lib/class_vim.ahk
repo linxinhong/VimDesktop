@@ -67,7 +67,6 @@ Class __vim
 				this.pluginList := []
 				this.winList    := []
 				this.winInfo    := []
-				this.varList    := []
 				this.ActionList := []
 				this.ActionFromPlugin := []
 				this.ExcludeWinList :=[]
@@ -110,7 +109,7 @@ Class __vim
 		}
     ; Comment(action,desc,complex=1) {{{2
     ; 兼容老版本的vimcore.ahk
-    Comment(action,desc,complex=1)
+    Comment(action,desc="",complex=1)
     {
       act := this.SetAction(Action,Desc)
       If not complex ; 不允许多次运行
@@ -176,13 +175,27 @@ Class __vim
     {
       If not IsObject(this.GetWin(win))
         this.SetWin(win,win)
-      this.SetMode(mode,win)
+      return this.SetMode(mode,win)
     }
 		; SetMode(modeName,winName) {{{2
 		SetMode(modeName,winName="")
 		{
 			winObj := This.GetWin(winName)
 			return winObj.ChangeMode(modeName)
+		}
+    ; SetModeFunction(func,modeName,winName="") {{{2
+    SetModeFunction(func,modeName,winName="")
+    {
+			winObj := This.GetWin(winName)
+		  modeObj := winObj.modeList[modeName]
+      modeObj.modeFunction := func
+    }
+    ; GetMode(winName) {{{2
+		; 获取指定win中当前的模式
+		GetMode(winName="")
+		{
+			winObj := This.GetWin(winName)
+			return winObj.modeList[winobj.ExistMode()]
 		}
 		; BeforeActionDo(Function,winName="") {{{2
 		BeforeActionDo(Function,winName="")
@@ -196,13 +209,7 @@ Class __vim
 			winObj  := this.GetWin(winName)
 			winObj.AfterActionDoFunc:= Function
 		}
-		; GetMode(winName) {{{2
-		; 获取指定win中当前的模式
-		GetMode(winName="")
-		{
-			winObj := This.GetWin(winName)
-			return winObj.modeList[winobj.ExistMode()]
-		}
+		
 		; 
 		; SetMaxCount(Int,winName) {{{2
 		SetMaxCount(Int,winName="")
@@ -216,7 +223,7 @@ Class __vim
 			winObj := This.GetWin(winName)
 			return winObj.MaxCount
 		}
-		; SetCount(winName) {{{2
+		; SetCount(int,winName) {{{2
 		SetCount(int,winName="")
 		{
 			winObj := This.GetWin(winName)
@@ -388,6 +395,7 @@ Class __vim
 			from:=winObj.modeList[fromMode] 
       from.name  := toMode
       winObj.modeList[toMode] := from
+      return from
     }
 	
 		; Delete(winName) {{{2
@@ -402,7 +410,7 @@ Class __vim
 		{
 			winObj  := this.GetWin(this.LastFoundWin)
 			modeObj := this.GetMode(this.LastFoundWin)
-      If winObj.KeyTemp
+      If Strlen(winObj.KeyTemp)
       {
 			  r := winObj.KeyTemp "`n"
 			  m := "i)^" this.ToMatch(winObj.KeyTemp) ".+"
@@ -415,7 +423,7 @@ Class __vim
       }
       Else
         If winobj.count
-        return winobj.count
+          return winobj.count
 		}
 		; Clear() {{{2
 		Clear(winName="") {
@@ -431,7 +439,6 @@ Class __vim
 			winName := this.CheckWin()
 			; 获取当前的热键
 			k := this.CheckCapsLock(this.Convert2VIM(A_ThisHotkey))
-			this.Debug.Add(" win: " winname "`tHotkey: " k)
 			; 如果winName在排除窗口中，直接发送热键
 			If this.ExcludeWinList[winName] {
 					Send,% this.Convert2AHK(k,ToSend:=True)
@@ -461,6 +468,7 @@ Class __vim
 			modeObj := this.GetMode(winName)
 			; 把当前热键添加到热键缓存中,并设置最后热键为k
 			winObj.KeyTemp .= winObj.LastKey := k
+			this.Debug.Add(" win: " winname "`tHotkey: " k)
 /*
       If winObj.Count
 			  this.Debug.Add(" [" winName "`t热键:" winObj.Count winObj.KeyTemp  )
@@ -550,9 +558,15 @@ Class __vim
 		Debug(Bold,history=false)
 		{
 			If Bold
+      {
 				this.Debug := new __vimDebug(history)
+        this.Debug.var(this)
+      }
 			Else
+      {
+		    GUI,vimDebug:Destroy
 				this.Debug := ""
+      }
 		}
 		; Convert2VIM(key) {{{2
 		; 将AHK热键名转换为类VIM的热键名
@@ -743,7 +757,10 @@ Class __win
 		this.Count := 0
 		If not this.modeList[modeName]
 			this.modeList[modeName] := new __Mode(modeName)
-		return this.modeList[modeName]
+    modeObj := this.modeList[modeName]
+    If IsFunc(func := modeObj.modeFunction)
+      %func%()
+		return modeObj
 	}
   ; ExistMode() {{{2
 	; 获取当前模式名
@@ -789,7 +806,7 @@ Class __Mode
 		this.keymapList := []
 		this.keymoreList := []
 		this.nowaitList := []
-		this.modeFucntion := ""
+		this.modeFunction := ""
 	}
 	; SetKeyMap(key,action) {{{2
 	SetKeyMap(key,action)
@@ -842,6 +859,9 @@ Class __Action
 		this.Comment := Comment
 		this.MaxTimes := 0
 		this.Type := 0
+    this.Function := ""
+    this.CmdLine := ""
+    this.HotString := ""
 	}
 	; SetFunction(Function) {{{2
 	; 设置Action执行的函数名
@@ -882,29 +902,33 @@ Class __Action
 			If this.Type = 0
 			{
 				If IsLabel(l:=this.Name)
+        {
 					GoSub,%l%
-				Else
-					return False
+					return True
+        }
 			}
 			If this.Type = 1
 			{
 				If IsFunc(f:=this.Function)
+        {
 					%f%()
-				Else
 					return True
+        }
 			}
 			If this.Type = 2
 			{
 				c := this.CmdLine
 				Run,%cmd%
+        return True
 			}
 			If This.Type = 3
 			{
 				t := this.HotString
 				Send,%t%
+        return True
 			}
 		}
-		return True
+		return False
 	}
 }
 
@@ -919,6 +943,7 @@ Class __Plugin
 			this.Ver := ""
 			this.Comment := ""
 	}
+	; CheckSub() {{{2
 	CheckSub()
 	{
 			If IsLabel(p:=this.PluginName)
@@ -951,13 +976,25 @@ Class __vimDebug
 		  GUI,vimDebug:font,s12
 		  GUI,vimDebug:Destroy
 		  GUI,vimDebug:Add,Edit,x10 y10 w400 h300 readonly
-		  GUI,vimDebug:Show, w420 h320
+		  GUI,vimDebug:Add,Edit,x10 y320 w400 h26 readonly
+		  GUI,vimDebug:Show, w420 h356
     }
 	}
+  var(obj)
+  {
+    this.vim := obj
+  }
 	Set(v)
 	{
+    winName := this.vim.CheckWin()
+    winObj := this.vim.GetWin(winName)
+    If winObj.Count
+			 k := " 热键缓存:" winObj.Count winObj.KeyTemp
+    Else
+			 k := " 热键缓存:" winObj.KeyTemp
 		GUI,vimDebug:Default
 		GUIControl,,Edit1,%v%
+		GUIControl,,Edit2,%k%
 	}
 	Get()
 	{
@@ -965,6 +1002,7 @@ Class __vimDebug
 		GUIControlGet,v,,Edit1
 		return v
 	}
+	; Add(v) {{{2
 	Add(v)
 	{
 		b:=this.Get()
@@ -973,6 +1011,7 @@ Class __vimDebug
     else
 		  this.Set(v "`n" b)
 	}
+	; Clear() {{{2
 	Clear()
 	{
 		this.Set("")

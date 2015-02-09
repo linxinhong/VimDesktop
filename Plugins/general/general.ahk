@@ -1,4 +1,5 @@
 ﻿General:
+  Gen_Save_Win := []
 	vim.SetAction("<down>","向下移动")
 	vim.SetAction("<up>","向上移动")
 	vim.SetAction("<left>","向左移动")
@@ -24,8 +25,8 @@
 	vim.SetMode("normal","General")
 	vim.Map("j","<down>","General")
 	vim.Map("k","<up>","General")
-	vim.Map("h","<right>","General")
-	vim.Map("l","<left>","General")
+	vim.Map("l","<right>","General")
+	vim.Map("h","<left>","General")
 	vim.Map("gw","<down>","General")
 	vim.map("i","<Gen_InsertMode>","General")
 	;vim.Map("<super><c-esc>","HotkeyToggle","General")
@@ -42,18 +43,22 @@ return
 return
 Gen_Toggle()
 {
-  Global vim
+  Global vim, Gen_Save_Win
 	WinGetClass,c,A
-  If IsObject(vim.GetWin(WinName:=vim.CheckWin()))
+  WinName:=vim.CheckWin()
+  If not Gen_Save_Win[c]
   {
-    MsgBox, ,VimDesktop, 当前窗口 [ %winName% ] 已经拥有Vim模式`n不允许替换为通用(General)模式！
-    return
+    If Strlen(winName) And IsObject(vim.GetWin(winName)) 
+    {
+      MsgBox, ,VimDesktop, 当前窗口 [ %winName% ] 已经拥有Vim模式`n不允许替换为通用(General)模式！
+      return
+    }
   }
   winObj := vim.GetWin(c)
   If not Isobject(winObj)
   {
-	  WinGetClass,C,A
 	  new :=vim.copy("General",c,c)
+    Gen_Save_Win[c] := True
   }
   Else
 	  vim.Toggle(c)

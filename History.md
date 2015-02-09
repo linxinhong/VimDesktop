@@ -1,14 +1,33 @@
 ## 计划完成的功能
 
-1. 增加Dock支持
+- [ ] 1. 增加Dock支持
 
-2. 增加一个简单的配置界面
+- [ ] 2. 增加一个简单的配置界面
 
-3. 迁移TC插件
+- [ ] 3. 迁移TC插件
 
-4. ~迁移Everything插件~
+- [x] 4. 迁移Everything插件
 
 ## 历史记录
+* 2015-02-09 13:31:45
+
+> ++ 增加[vim.SetModeFunction()](https://github.com/linxinhong/VimDesktop/wiki/API#setmodefunctionfuncmodenamewinname)
+
+> ++ 优化vim.Debug调试界面。
+
+> ++ 优化判断逻辑。
+
+> ++ 增加 \<cm_SearchStandalone\> 独立搜索界面、\<TC_GotoDesktop\> 切换到桌面两个功能。
+
+> ++ 增加check.ahk用于检测管理插件，增加viatc.ico做为VIMD的图标。
+
+> ** 修复TC插件对totalcmd64.exe识别出错的问题。
+
+> ** 修复任务栏图标右键无法退出的Bug。
+
+> -- 移动 Plugins\Plugins.ahk到lib\vimd_plugins.ahk，便于管理。
+
+> ** 其它若干Bug修复。
 
 * 2015-02-07 17:49:20
 
