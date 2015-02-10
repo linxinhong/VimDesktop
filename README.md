@@ -1,3 +1,5 @@
+# 项目主页迁移到[http://git.oschina.net/linxinhong/VimDesktop](http://git.oschina.net/linxinhong/VimDesktop)
+
 # VimDesktop是什么？
 
 VimDesktop 是一套基于AHK编辑的热键管理框架
