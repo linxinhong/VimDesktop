@@ -1,4 +1,6 @@
-# 项目主页迁移到[http://git.oschina.net/linxinhong/VimDesktop](http://git.oschina.net/linxinhong/VimDesktop)
+# 项目主页迁移到:
+
+# [http://git.oschina.net/linxinhong/VimDesktop](http://git.oschina.net/linxinhong/VimDesktop)
 
 # VimDesktop是什么？
 
